@@ -8,7 +8,7 @@ import os
 from subprocess import DEVNULL
 from .protocol import response
 
-corpus_name = os.environ["CORPUS"]
+corpus_name = "transcript.v.1.4.txt"
 
 prompts_dir = prompts_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -59,19 +59,18 @@ class AudioFS:
         os.remove(webm_file_name)
 
     @staticmethod
-    def save_meta_data(user_audio_dir, uuid, wav_file_id, prompt):
+    def save_meta_data(file_dir, wav_file_id, prompt):
         """Write a line for every saved recording in metadata.csv file.
 
-        CSV file format is <uuid of recording>.wav|Recorded phrase|Length of phrase.
+        CSV file format is Audio file path|Original script|Expanded script|Decomposed script|Audio duration (seconds)|English translation
 
         Args:
-            user_audio_dir: Base directory for recordings (./backend/audio_files/<user-id>/).
             uuid: user-id.
             wav_file_id (str): unique id of wavefile.
             prompt (str): Text of recorded phrase.
         """
-        path = os.path.join(user_audio_dir, '%s-metadata.txt' % uuid)
-        data = "{}|{}|{}\n".format(wav_file_id + ".wav", prompt, len(prompt))
+        path = os.path.join(audio_dir, 'transcript.v.1.4.txt')
+        data = "{}|{}|{}|{}|{}|{}\n".format(f'{file_dir}/{wav_file_id}', prompt, prompt, prompt, 0, '')
 
         same = False
         if os.path.isfile(path):
@@ -113,10 +112,42 @@ class PromptsFS:
     """API Class for Prompt handling."""
     def __init__(self):
         self.data = []
+        self.file_path = []
+        _1 = []
+        _2 = []
+        _3 = []
+        _4 = []
         with open(prompts_path, 'r', encoding='utf8') as f:
-            prompts = csv.reader(f, delimiter="\t")
+            prompts = csv.reader(f, delimiter="|")
             for p in prompts:
-                self.data.append(p[0])
+                if p[0][0] == '1':
+                    _1.append(p)
+                elif p[0][0] == '2':
+                    _2.append(p)
+                elif p[0][0] == '3':
+                    _3.append(p)
+                elif p[0][0] == '4':
+                    _4.append(p)
+
+            while True:
+                if _1:
+                    element = _1.pop(0)
+                    self.file_path.append(element[0])
+                    self.data.append(element[2])
+                if _2:
+                    element = _2.pop(0)
+                    self.file_path.append(element[0])
+                    self.data.append(element[2])
+                if _3:
+                    element = _3.pop(0)
+                    self.file_path.append(element[0])
+                    self.data.append(element[2])
+                if _4:
+                    element = _4.pop(0)
+                    self.file_path.append(element[0])
+                    self.data.append(element[2])
+                if not _1 and not _2 and not _3 and not _4:
+                    break
 
     def get(self, prompt_number: int) -> response:
         """Get text from corpus by prompt number.
@@ -131,11 +162,13 @@ class PromptsFS:
         try:
             d = {
                 "prompt": self.data[prompt_number],
+                "file_path": self.file_path[prompt_number],
                 "total_prompt": len(self.data)
             }
         except IndexError as e:
             d = {
                 "prompt": "___CORPUS_END___",
+                "file_path": "",
                 "total_prompt": 0
             }            
         return response(True, data=d)
