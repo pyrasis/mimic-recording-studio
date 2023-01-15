@@ -8,7 +8,7 @@ import os
 from subprocess import DEVNULL
 from .protocol import response
 
-corpus_name = os.environ["CORPUS"]
+corpus_name = "korean_corpus.csv"
 
 prompts_dir = prompts_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
