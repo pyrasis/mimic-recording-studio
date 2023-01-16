@@ -37,7 +37,7 @@ class UserModel(Model):
     total_time_spoken = FloatField(default=0.0)
     len_char_spoken = IntegerField(default=0)
     # TODO: language support, change this from default
-    language = CharField(default='english')
+    language = CharField(default='korean')
     created_date = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
