@@ -74,13 +74,13 @@ class AudioFS:
 
         same = False
         if os.path.isfile(path):
-            with open(path, 'r+') as f:
+            with open(path, mode='r+', encoding='utf-8') as f:
                 lines = f.readlines()
                 if len(lines) > 0 and lines[-1] == data:
                     same = True
 
         if not same:
-            with open(path, 'a') as f:
+            with open(path, mode='a', encoding='utf-8') as f:
                 f.write(data)
 
     @staticmethod
