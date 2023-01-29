@@ -13,6 +13,9 @@ class Metrics extends Component {
                         Phrase: {this.props.promptNum} / {this.props.totalPrompt}
                     </div>
                     <div>
+                        File Path: {this.props.filePath}
+                    </div>
+                    <div>
                         Time Recorded: {this.secondsToHms(Math.round(this.props.totalTime))}
                     </div>
                 </div>

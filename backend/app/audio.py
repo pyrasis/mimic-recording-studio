@@ -1,5 +1,6 @@
 """audio processing, etc"""
 from pydub import AudioSegment
+import os
 
 
 class Audio:
@@ -54,7 +55,7 @@ class Audio:
             path (str): Location for wav file.
             audio (AudioSegment): Audio data.
         """
-        audio.export(path + ".wav", format="wav")
+        audio.export(path, format="wav")
 
     @staticmethod
     def get_audio_len(audio: AudioSegment) -> float:

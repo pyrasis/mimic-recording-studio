@@ -26,6 +26,7 @@ class Record extends Component {
       blob: undefined,
       play: false,
       prompt: "*error loading prompt... is the backend running?*",
+      filePath: "",
       language: "",
       promptNum: 0,
       totalTime: 0,
@@ -61,6 +62,7 @@ class Record extends Component {
           totalTime={this.state.totalTime}
           totalCharLen={this.state.totalCharLen}
           promptNum={this.state.promptNum}
+          filePath={this.state.filePath}
           totalPrompt={this.state.totalPrompt}
         />
         <PhraseBox
@@ -142,6 +144,7 @@ class Record extends Component {
         if (res.success && res.data.prompt !== "___CORPUS_END___") {
         this.setState({
           prompt: res.data.prompt,
+          filePath: res.data.file_path,
           totalPrompt: res.data.total_prompt
         });
         }
@@ -276,7 +279,7 @@ class Record extends Component {
 
   onNext = () => {
     if (this.state.blob !== undefined) {
-      postAudio(this.state.blob, this.state.prompt, this.uuid)
+      postAudio(this.state.blob, this.state.prompt, this.uuid, this.state.filePath)
         .then(res => res.json())
         .then(res => {
           if (res.success) {
@@ -297,7 +300,7 @@ class Record extends Component {
 
   skipCurrent = () => {
     // Send static text '___SKIPPED___' as prefix to original phrase to backend API for being filtered out.
-    postAudio("", "___SKIPPED___" + this.state.prompt, this.uuid)
+    postAudio("", "___SKIPPED___" + this.state.prompt, this.uuid, this.filePath)
     .then(res => res.json())
     .then(res => {
       if (res.success) {

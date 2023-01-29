@@ -50,7 +50,7 @@ class UserAPI:
 class AudioAPI:
     """API to save, get, and extract all audio as zip"""
 
-    def save_audio(self, audio: bytes, uuid: str, prompt: str):
+    def save_audio(self, audio: bytes, uuid: str, prompt: str, file_path: str):
         """Save frontend submitted audio recording to filesystem and database.
 
         All files are save with their unique id as the filename.
@@ -66,7 +66,7 @@ class AudioAPI:
         Returns:
             response: Response object containing success or failure as bool
         """
-        user_audio_dir = AudioFS.get_audio_path(uuid)
+        user_audio_dir = os.path.join(AudioFS.get_audio_path(uuid), os.path.dirname(file_path))
         
         if prompt[:13] == "___SKIPPED___":
             res = DB.skipPhrase(uuid)
@@ -76,19 +76,21 @@ class AudioAPI:
             return response(True)
         else:
             os.makedirs(user_audio_dir, exist_ok=True)
-            wav_file_id = AudioFS.create_file_name(prompt)
-            path = os.path.join(user_audio_dir, wav_file_id)
+            file_dir = os.path.dirname(file_path)
+            wav_file_id = os.path.basename(file_path)
+            path = os.path.join(temp_path, uuid)
 
             try:
                 # save wav file. This step is needed before trimming.
                 AudioFS.save_audio(path, audio)
-                AudioFS.save_meta_data(user_audio_dir, uuid, wav_file_id, prompt)
+                AudioFS.save_meta_data(file_dir, wav_file_id, prompt)
 
                 # trim silence and save
                 trimmed_sound = Audio.trim_silence(path)
-                Audio.save_audio(path, trimmed_sound)
+                Audio.save_audio(os.path.join(user_audio_dir, wav_file_id), trimmed_sound)
+                os.remove(path + '.wav')
 
-                res = DB.save_audio(wav_file_id, prompt, 'english', uuid)
+                res = DB.save_audio(f'{file_dir}/{wav_file_id}', prompt, 'korean', uuid)
                 if res.success:
                     audio_len = Audio.get_audio_len(trimmed_sound)
                     char_len = len(prompt)
